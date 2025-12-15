@@ -2,26 +2,47 @@ using UnityEngine;
 
 public class AsteroitController : MonoBehaviour
 {
+    public float speed = 3f;
+
+    // --- YENÝ: Patlama Sesi ---
+    public AudioClip patlamaSesi;
+
+    void Update()
+    {
+        transform.Translate(Vector3.down * speed * Time.deltaTime);
+
+        if (transform.position.y < -8f)
+        {
+            Destroy(gameObject);
+        }
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
-        // SENARYO 1: Eðer çarpan þey MERMÝ ise (Puaný burada veriyoruz)
+        // 1. MERMÝ ÇARPARSA (Puan kazan ve yok et)
         if (other.gameObject.CompareTag("mermi"))
         {
-            // --- DÜZELTME BURADA ---
-            // Sadece mermi vurunca puan kazanýlýr
             GameManager yonetici = FindObjectOfType<GameManager>();
             if (yonetici != null) yonetici.PuanKazan(10);
-            // -----------------------
 
-            Destroy(other.gameObject); // Mermiyi yok et
-            Destroy(gameObject);       // Taþý yok et
+            // --- YENÝ: Patlama Sesini Çal ---
+            if (patlamaSesi != null)
+            {
+                // Obje yok olsa bile sesi o noktada çalar
+                AudioSource.PlayClipAtPoint(patlamaSesi, transform.position);
+            }
+            // --------------------------------
+
+            Destroy(other.gameObject); // Mermiyi sil
+            Destroy(gameObject);       // Taþý sil
         }
 
-        // SENARYO 2: Eðer çarpan þey PLAYER (GEMÝ) ise (Puan yok, sadece hasar)
+        // 2. GEMÝ ÇARPARSA (Sadece yok ol, sesi gemi çýkarýyor zaten)
         else if (other.gameObject.CompareTag("Player"))
         {
-            Destroy(gameObject);       // Taþý yok et
-            Debug.Log("Gemi hasar aldý!"); // (Buraya ilerde CanAzalt eklenecek)
+            // Buraya da istersen patlama sesi ekleyebilirsin ama
+            // Gemi zaten "Çarpýþma Sesi" çýkaracaðý için gürültü olmasýn.
+            Destroy(gameObject);
         }
     }
 }

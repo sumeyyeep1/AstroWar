@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -8,14 +9,18 @@ public class PlayerController : MonoBehaviour
     public GameObject lazerPrefab;
     public Transform atesNoktasi;
 
-    // Ses Ayarlarý
-    public AudioClip atesSesi;
+    // --- SES AYARLARI ---
+    public AudioClip atesSesi;      // Mermi sesi
+    public AudioClip carpismaSesi;  // YENÝ: Çarpma sesi (Bunu editörden ekleyeceksin)
     private AudioSource audioSource;
+
+    // Görsel efekt
+    private SpriteRenderer gemiGrafigi;
 
     void Start()
     {
-        // Hoparlörü bul (Eðer Player objesinde AudioSource yoksa hata vermesin diye kontrol edebiliriz ama þimdilik gerek yok)
         audioSource = GetComponent<AudioSource>();
+        gemiGrafigi = GetComponent<SpriteRenderer>();
     }
 
     void Update()
@@ -23,10 +28,7 @@ public class PlayerController : MonoBehaviour
         // --- Hareket ---
         float moveInput = Input.GetAxisRaw("Horizontal");
 
-        if (Mathf.Abs(moveInput) < 0.1f)
-        {
-            moveInput = 0f;
-        }
+        if (Mathf.Abs(moveInput) < 0.1f) moveInput = 0f;
 
         Vector2 movement = new Vector2(moveInput * moveSpeed * Time.deltaTime, 0f);
         transform.Translate(movement);
@@ -46,7 +48,6 @@ public class PlayerController : MonoBehaviour
         Vector3 cikisYeri = (atesNoktasi != null) ? atesNoktasi.position : transform.position;
         Instantiate(lazerPrefab, cikisYeri, Quaternion.identity);
 
-        // --- Sesi Çal ---
         if (audioSource != null && atesSesi != null)
         {
             audioSource.PlayOneShot(atesSesi);
@@ -56,18 +57,33 @@ public class PlayerController : MonoBehaviour
     // --- Çarpýþma Algýlama ---
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Kural: Düþman mermisi VEYA Düþman VEYA Asteroit çarparsa...
         if (other.gameObject.CompareTag("dusmanmermisi") ||
             other.gameObject.CompareTag("dusman") ||
-            other.gameObject.CompareTag("astreoit")) // <-- YENÝ EKLENEN KISIM
+            other.gameObject.CompareTag("astreoit"))
         {
             Debug.Log("Vurulduk!");
+
+            // 1. GÖRSEL EFEKT (Kýzarma)
+            if (gemiGrafigi != null) StartCoroutine(HasarEfekti());
+
+            // 2. SES EFEKTÝ (Çarpma Sesi) --- YENÝ KISIM ---
+            if (audioSource != null && carpismaSesi != null)
+            {
+                audioSource.PlayOneShot(carpismaSesi);
+            }
+            // ----------------------------------------------
 
             GameManager yonetici = FindObjectOfType<GameManager>();
             if (yonetici != null) yonetici.CanAzalt();
 
-            // Çarpan þeyi (Taþ, Mermi veya Düþman) yok et
             Destroy(other.gameObject);
         }
+    }
+
+    IEnumerator HasarEfekti()
+    {
+        gemiGrafigi.color = Color.red;
+        yield return new WaitForSeconds(0.1f);
+        gemiGrafigi.color = Color.white;
     }
 }

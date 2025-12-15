@@ -1,23 +1,34 @@
 using UnityEngine;
-using TMPro;
-using UnityEngine.SceneManagement; // BU SATIR ÞART! (Sahne yönetimi için)
+using TMPro; // TextMeshPro kullandýðýn için bu kütüphane þart
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
+    [Header("UI Elemanlarý")]
     public TextMeshProUGUI skorYazisi;
     public TextMeshProUGUI canYazisi;
-    public GameObject gameOverPaneli;
     public TextMeshProUGUI levelYazisi;
+    public GameObject gameOverPaneli;
 
-   public int toplamPuan = 0;
+    [Header("Oyun Ayarlarý")]
+    public int toplamPuan = 0;
     int kalanCan = 3;
     int suankiLevel = 1;
 
+    [Header("Ses Efektleri")]
+    public AudioClip oyunBittiSesi; // --- YENÝ: Oyun Bitme Sesi ---
+    private bool oyunBittiMi = false; // Sesin bir kere çalmasý için kontrol
+
     void Start()
     {
+        Time.timeScale = 1f;
         GuncelleCanYazisi();
-        if (levelYazisi != null) levelYazisi.text = "LEVEL " + suankiLevel;
+
         if (gameOverPaneli != null) gameOverPaneli.SetActive(false);
+
+        // OYUN BAÞLAR BAÞLAMAZ LEVEL YAZISINI GÖSTER VE GÝZLE
+        LevelYazisiniGuncelle();
     }
 
     public void PuanKazan(int gelenPuan)
@@ -25,36 +36,42 @@ public class GameManager : MonoBehaviour
         toplamPuan += gelenPuan;
         if (skorYazisi != null) skorYazisi.text = "SKOR: " + toplamPuan.ToString();
 
-        // --- LEVEL 2 KONTROLÜ (300 Puan) ---
+        // --- LEVEL 2 KONTROLÜ ---
         if (toplamPuan >= 300 && suankiLevel == 1)
         {
             suankiLevel = 2;
-            if (levelYazisi != null)
-            {
-                levelYazisi.text = "LEVEL " + suankiLevel;
-                levelYazisi.color = Color.yellow; // Sarý Renk
-            }
+            LevelYazisiniGuncelle();
+
+            Spawner fabrika = FindObjectOfType<Spawner>();
+            // Fabrika hýzlandýrma kodlarýný buraya ekleyebilirsin
         }
 
-        // --- YENÝ: LEVEL 3 KONTROLÜ (700 Puan) ---
+        // --- LEVEL 3 KONTROLÜ ---
         if (toplamPuan >= 700 && suankiLevel == 2)
         {
             suankiLevel = 3;
+            LevelYazisiniGuncelle();
 
-            // 1. Yazýyý Güncelle
-            if (levelYazisi != null)
-            {
-                levelYazisi.text = "LEVEL " + suankiLevel + " (MAX)";
-                levelYazisi.color = Color.red; // Kýrmýzý Renk (Tehlike!)
-            }
-
-            // 2. Spawner'ý Bul ve Hýzlandýr
             Spawner fabrika = FindObjectOfType<Spawner>();
-            if (fabrika != null)
-            {
-                fabrika.UretimiHizlandir();
-            }
+            if (fabrika != null) fabrika.UretimiHizlandir();
         }
+    }
+
+    // --- YAZIYI GÖSTERÝP GÝZLEYEN FONKSÝYON ---
+    void LevelYazisiniGuncelle()
+    {
+        if (levelYazisi != null)
+        {
+            levelYazisi.text = "LEVEL " + suankiLevel;
+            StartCoroutine(YaziEfekti());
+        }
+    }
+
+    IEnumerator YaziEfekti()
+    {
+        levelYazisi.gameObject.SetActive(true);
+        yield return new WaitForSeconds(2f);
+        levelYazisi.gameObject.SetActive(false);
     }
 
     public void CanAzalt()
@@ -68,6 +85,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void CanKazan()
+    {
+        if (kalanCan < 3)
+        {
+            kalanCan++;
+            GuncelleCanYazisi();
+        }
+    }
+
     void GuncelleCanYazisi()
     {
         if (canYazisi != null) canYazisi.text = "CAN: " + kalanCan.ToString();
@@ -75,25 +101,37 @@ public class GameManager : MonoBehaviour
 
     void OyunBitti()
     {
-        Time.timeScale = 0f; // Oyunu dondur
-        if (gameOverPaneli != null) gameOverPaneli.SetActive(true); // Paneli aç
+        // --- YENÝ: KONTROL VE SES ---
+        if (oyunBittiMi == true) return; // Zaten bittiyse tekrar çalýþma
+        oyunBittiMi = true; // Bitttiðini iþaretle
+
+        // Oyun Bitme Sesini Çal (Kamera pozisyonunda)
+        if (oyunBittiSesi != null)
+        {
+            AudioSource.PlayClipAtPoint(oyunBittiSesi, Camera.main.transform.position);
+        }
+        // -----------------------------
+
+        // --- REKOR KAYDETME ---
+        int eskiRekor = PlayerPrefs.GetInt("EnYuksekSkor", 0);
+        if (toplamPuan > eskiRekor)
+        {
+            PlayerPrefs.SetInt("EnYuksekSkor", toplamPuan);
+            PlayerPrefs.Save();
+        }
+
+        if (gameOverPaneli != null) gameOverPaneli.SetActive(true);
+
+        // Diðer yazýlarý gizle
+        if (skorYazisi != null) skorYazisi.gameObject.SetActive(false);
+        if (levelYazisi != null) levelYazisi.gameObject.SetActive(false);
+        if (canYazisi != null) canYazisi.gameObject.SetActive(false);
+
+        Time.timeScale = 0f;
     }
 
-    // --- ÝÞTE BUTONUN ÇALIÞTIRACAÐI KOD BURASI ---
-    public void YenidenBasla()
+    public void TekrarDene()
     {
-        Time.timeScale = 1f; // Zamaný tekrar akýt (Yoksa oyun donuk baþlar)
-        // Mevcut sahneyi (bölümü) baþtan yükle
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-    // YENÝ: Can Kazanma Fonksiyonu
-    public void CanKazan()
-    {
-        // Canýmýz 3'ten azsa artýr (Maksimum can 3 olsun)
-        if (kalanCan < 3)
-        {
-            kalanCan++;
-            GuncelleCanYazisi();
-        }
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
