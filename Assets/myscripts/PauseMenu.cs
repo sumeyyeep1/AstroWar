@@ -42,7 +42,7 @@ public class PauseMenu : MonoBehaviour
     public void LoadMenu()
     {
         Time.timeScale = 1f; // Menüye dönerken zamaný tekrar açmayý unutma!
-        SceneManager.LoadScene("Menu"); // "Menu" senin sahne adýn olmalý
+        SceneManager.LoadScene("MainMenu"); // "Menu" senin sahne adýn olmalý
     }
 
     // Oyundan Çýk

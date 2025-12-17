@@ -1,7 +1,8 @@
-using UnityEngine;
-using TMPro; // TextMeshPro kullandýðýn için bu kütüphane þart
-using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic; // Listeler için gerekli olabilir
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,23 +12,34 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI levelYazisi;
     public GameObject gameOverPaneli;
 
-    [Header("Oyun Ayarlarý")]
-    public int toplamPuan = 0;
-    int kalanCan = 3;
-    int suankiLevel = 1;
+    [Header("Oyun Verileri")]
+    public int toplamPuan = 0; // Senin puan deðiþkenin bu
+    public int kalanCan = 3;
+    public int suankiLevel = 1;
 
-    [Header("Ses Efektleri")]
-    public AudioClip oyunBittiSesi; // --- YENÝ: Oyun Bitme Sesi ---
-    private bool oyunBittiMi = false; // Sesin bir kere çalmasý için kontrol
+    // Ses
+    public AudioClip oyunBittiSesi;
+    private bool oyunBittiMi = false;
+
+    // --- DÜZELTME 1: Spawner'ý burada tanýmlýyoruz ---
+    private Spawner spawner;
 
     void Start()
     {
+        // --- DÜZELTME 1 DEVAMI: Spawner'ý bulup hafýzaya alýyoruz ---
+        spawner = FindObjectOfType<Spawner>();
+
         Time.timeScale = 1f;
         GuncelleCanYazisi();
 
         if (gameOverPaneli != null) gameOverPaneli.SetActive(false);
 
-        // OYUN BAÞLAR BAÞLAMAZ LEVEL YAZISINI GÖSTER VE GÝZLE
+        // Baþlangýç ayarýný yapýyoruz (Artýk 'spawner' deðiþkenini kullanýyoruz)
+        if (spawner != null)
+        {
+            spawner.ZorlukGuncelle(2.5f, 0.8f, false, false);
+        }
+
         LevelYazisiniGuncelle();
     }
 
@@ -36,41 +48,68 @@ public class GameManager : MonoBehaviour
         toplamPuan += gelenPuan;
         if (skorYazisi != null) skorYazisi.text = "SKOR: " + toplamPuan.ToString();
 
-        // --- LEVEL 2 KONTROLÜ ---
-        if (toplamPuan >= 300 && suankiLevel == 1)
-        {
-            suankiLevel = 2;
-            LevelYazisiniGuncelle();
+        // --- DÜZELTME 3: Fonksiyonun doðru adýný yazýyoruz ---
+        LevelKontrol();
+    }
 
-            Spawner fabrika = FindObjectOfType<Spawner>();
-            // Fabrika hýzlandýrma kodlarýný buraya ekleyebilirsin
+    void LevelKontrol()
+    {
+        // Spawner yoksa hata vermesin diye güvenlik önlemi
+        if (spawner == null) return;
+
+        // --- DÜZELTME 2: 'skor' yerine 'toplamPuan' yazýyoruz ---
+        if (toplamPuan < 100) // --- LEVEL 1 ---
+        {
+            if (suankiLevel != 1)
+            {
+                suankiLevel = 1;
+                Debug.Log("Level 1 Baþladý");
+                spawner.ZorlukGuncelle(3.0f, 2.0f, false, false);
+                LevelYazisiniGuncelle(); // Level yazýsý çýksýn
+            }
         }
-
-        // --- LEVEL 3 KONTROLÜ ---
-        if (toplamPuan >= 700 && suankiLevel == 2)
+        else if (toplamPuan >= 100 && toplamPuan < 250) // --- LEVEL 2 ---
         {
-            suankiLevel = 3;
-            LevelYazisiniGuncelle();
-
-            Spawner fabrika = FindObjectOfType<Spawner>();
-            if (fabrika != null) fabrika.UretimiHizlandir();
+            if (suankiLevel != 2)
+            {
+                suankiLevel = 2;
+                Debug.Log("Level 2 Baþladý");
+                spawner.ZorlukGuncelle(2.0f, 5.0f, false, true);
+                LevelYazisiniGuncelle();
+            }
+        }
+        else if (toplamPuan >= 250) // --- LEVEL 3 ---
+        {
+            if (suankiLevel != 3)
+            {
+                suankiLevel = 3;
+                Debug.Log("Level 3 Baþladý");
+                spawner.ZorlukGuncelle(1.5f, 5.0f, true, true);
+                LevelYazisiniGuncelle();
+            }
         }
     }
 
-    // --- YAZIYI GÖSTERÝP GÝZLEYEN FONKSÝYON ---
     void LevelYazisiniGuncelle()
     {
         if (levelYazisi != null)
         {
             levelYazisi.text = "LEVEL " + suankiLevel;
+            // Coroutine baþlatmak için gameObject'in aktif olmasý lazým
+            if (levelYazisi.gameObject.activeInHierarchy == false)
+                levelYazisi.gameObject.SetActive(true);
+
             StartCoroutine(YaziEfekti());
         }
     }
 
     IEnumerator YaziEfekti()
     {
+        // Yazýyý göster
         levelYazisi.gameObject.SetActive(true);
-        yield return new WaitForSeconds(2f);
+        // 2 saniye bekle
+        yield return new WaitForSecondsRealtime(2f);
+        // Yazýyý gizle
         levelYazisi.gameObject.SetActive(false);
     }
 
@@ -78,16 +117,12 @@ public class GameManager : MonoBehaviour
     {
         kalanCan--;
         GuncelleCanYazisi();
-
-        if (kalanCan <= 0)
-        {
-            OyunBitti();
-        }
+        if (kalanCan <= 0) OyunBitti();
     }
 
     public void CanKazan()
     {
-        if (kalanCan < 3)
+        if (kalanCan < 100) // Sýnýr
         {
             kalanCan++;
             GuncelleCanYazisi();
@@ -101,28 +136,13 @@ public class GameManager : MonoBehaviour
 
     void OyunBitti()
     {
-        // --- YENÝ: KONTROL VE SES ---
-        if (oyunBittiMi == true) return; // Zaten bittiyse tekrar çalýþma
-        oyunBittiMi = true; // Bitttiðini iþaretle
+        if (oyunBittiMi) return;
+        oyunBittiMi = true;
 
-        // Oyun Bitme Sesini Çal (Kamera pozisyonunda)
-        if (oyunBittiSesi != null)
-        {
-            AudioSource.PlayClipAtPoint(oyunBittiSesi, Camera.main.transform.position);
-        }
-        // -----------------------------
-
-        // --- REKOR KAYDETME ---
-        int eskiRekor = PlayerPrefs.GetInt("EnYuksekSkor", 0);
-        if (toplamPuan > eskiRekor)
-        {
-            PlayerPrefs.SetInt("EnYuksekSkor", toplamPuan);
-            PlayerPrefs.Save();
-        }
+        if (oyunBittiSesi != null) AudioSource.PlayClipAtPoint(oyunBittiSesi, Camera.main.transform.position);
 
         if (gameOverPaneli != null) gameOverPaneli.SetActive(true);
 
-        // Diðer yazýlarý gizle
         if (skorYazisi != null) skorYazisi.gameObject.SetActive(false);
         if (levelYazisi != null) levelYazisi.gameObject.SetActive(false);
         if (canYazisi != null) canYazisi.gameObject.SetActive(false);

@@ -78,6 +78,15 @@ public class PlayerController : MonoBehaviour
 
             Destroy(other.gameObject);
         }
+        else if(other.gameObject.CompareTag("can")) {
+            Debug.Log("Can toplandý ");
+            GameManager yonetici = FindObjectOfType<GameManager>();
+            if (yonetici != null) yonetici.CanKazan();
+
+            // 2. Kalbi Yok Et (Yedik çünkü)
+            Destroy(other.gameObject);
+        }
+    
     }
 
     IEnumerator HasarEfekti()
