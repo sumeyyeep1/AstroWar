@@ -98,7 +98,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 413098388184934177}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -201,7 +201,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hiz: 3
+  atesSikligi: 2
   mermiPrefab: {fileID: 6756905882403965722, guid: 1ec04641a013aac4a9fff95a9832758e, type: 3}
   patlamaEfekti: {fileID: 100002, guid: cafecd3fc3b761c45bb1553f35cf5c96, type: 3}
   patlamaSesi: {fileID: 8300000, guid: 11131269b10e3964ba54085242bc0038, type: 3}
-  atesSikligi: 2

@@ -18,25 +18,5 @@ public class CanIksiri : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.gameObject.CompareTag("Player"))
-        {
-            GameManager yonetici = FindObjectOfType<GameManager>();
-            if (yonetici != null)
-            {
-                yonetici.CanKazan();
-            }
-
-            // --- SESÝ ÇAL (Toplama) ---
-            if (toplamaSesi != null)
-            {
-                // Sesi 1.0 þiddetinde çal
-                AudioSource.PlayClipAtPoint(toplamaSesi, transform.position, 1.0f);
-            }
-            // --------------------------
-
-            Destroy(gameObject);
-        }
-    }
+   
 }

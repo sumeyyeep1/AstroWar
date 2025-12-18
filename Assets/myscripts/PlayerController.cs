@@ -13,7 +13,8 @@ public class PlayerController : MonoBehaviour
     public AudioClip atesSesi;      // Mermi sesi
     public AudioClip carpismaSesi;  // YENÝ: Çarpma sesi (Bunu editörden ekleyeceksin)
     private AudioSource audioSource;
-
+    // --- HASAR KORUMASI ---
+    private bool hasarAlabilirMi = true; // Baþlangýçta hasar alabiliriz
     // Görsel efekt
     private SpriteRenderer gemiGrafigi;
 
@@ -55,8 +56,12 @@ public class PlayerController : MonoBehaviour
     }
 
     // --- Çarpýþma Algýlama ---
+    // --- Çarpýþma Algýlama ---
     void OnTriggerEnter2D(Collider2D other)
     {
+        // ÖNEMLÝ: Eðer þu an koruma altýndaysak (hasarAlabilirMi = false ise) hiçbir þey yapma!
+        if (hasarAlabilirMi == false) return;
+
         if (other.gameObject.CompareTag("dusmanmermisi") ||
             other.gameObject.CompareTag("dusman") ||
             other.gameObject.CompareTag("astreoit"))
@@ -66,33 +71,48 @@ public class PlayerController : MonoBehaviour
             // 1. GÖRSEL EFEKT (Kýzarma)
             if (gemiGrafigi != null) StartCoroutine(HasarEfekti());
 
-            // 2. SES EFEKTÝ (Çarpma Sesi) --- YENÝ KISIM ---
+            // 2. SES EFEKTÝ
             if (audioSource != null && carpismaSesi != null)
             {
                 audioSource.PlayOneShot(carpismaSesi);
             }
-            // ----------------------------------------------
 
+            // 3. CAN AZALTMA
             GameManager yonetici = FindObjectOfType<GameManager>();
             if (yonetici != null) yonetici.CanAzalt();
 
-            Destroy(other.gameObject);
+            // 4. HASAR KORUMASINI AÇ (Artýk 1.5 saniye hasar almayacaksýn)
+            hasarAlabilirMi = false;
+            Invoke("HasarKorumasiniKaldir", 1.5f); // 1.5 saniye sonra fonksiyonu çalýþtýr
+
+            Destroy(other.gameObject); // Çarpan þeyi yok et
         }
-        else if(other.gameObject.CompareTag("can")) {
+        else if (other.gameObject.CompareTag("can"))
+        {
             Debug.Log("Can toplandý ");
             GameManager yonetici = FindObjectOfType<GameManager>();
             if (yonetici != null) yonetici.CanKazan();
-
-            // 2. Kalbi Yok Et (Yedik çünkü)
             Destroy(other.gameObject);
         }
-    
+    }
+
+    // --- YENÝ FONKSÝYON: Koruma Süresi Bitince Çalýþýr ---
+    void HasarKorumasiniKaldir()
+    {
+        hasarAlabilirMi = true; // Tekrar hasar alabilir hale gel
+        gemiGrafigi.color = Color.white; // Rengi normale döndür (Garanti olsun)
     }
 
     IEnumerator HasarEfekti()
     {
         gemiGrafigi.color = Color.red;
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.2f); // Kýzarma süresi
+        gemiGrafigi.color = Color.white;
+
+        // Yanýp sönme efekti (Opsiyonel: Daha havalý durur)
+        yield return new WaitForSeconds(0.2f);
+        gemiGrafigi.color = Color.red;
+        yield return new WaitForSeconds(0.2f);
         gemiGrafigi.color = Color.white;
     }
 }
