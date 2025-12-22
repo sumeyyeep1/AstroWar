@@ -1,26 +1,51 @@
-using UnityEngine;
+﻿using UnityEngine;
 
+// Bu script can iksirinin:
+// - Aşağı doğru hareketini
+// - Level'a göre çok hafif hızlanmasını
+// - Toplanmazsa sahneden silinmesini
+// kontrol eder
 public class CanIksiri : MonoBehaviour
 {
-    private float hiz = 1.2f; // Ba�lang��ta �ok yava� (Normali 3 idi)
+    // -------------------- HAREKET HIZI --------------------
+    // Can iksiri bilerek YAVAŞ başlar
+    // (Oyuncu kolayca toplayamasın diye)
+    private float hiz = 1.2f;
+
+    // İksir toplandığında çalacak ses
+    // (PlayerController içinden tetikleniyor)
     public AudioClip toplamaSesi;
+
     void Start()
     {
-        // GameManager'� bulup levele g�re h�z� �ok az artt�ral�m
+        // Sahnedeki GameManager'ı bul
+        // Level bilgisini almak için
         GameManager yonetici = FindObjectOfType<GameManager>();
 
         if (yonetici != null)
         {
-            // Level ba��na sadece 0.2 birim h�z ekle (�ok yava� art��)
-            // �rnek: Level 1=1.7f, Level 5=2.5f (Hala yava�)
+            // -------------------- LEVEL'A GÖRE HIZ AYARI --------------------
+            // Her level için sadece 0.2 hız ekliyoruz
+            // Amaç:
+            // - İksir tamamen sabit kalmasın
+            // - Ama asla düşman gibi hızlı olmasın
+            //
+            // Örnek:
+            // Level 1 → 1.4f
+            // Level 3 → 1.8f
+            // Level 5 → 2.2f (hala yavaş)
             hiz += (yonetici.suankiLevel * 0.2f);
         }
     }
 
     void Update()
     {
+        // Can iksirini aşağı doğru hareket ettir
+        // Time.deltaTime sayesinde FPS'ten bağımsız
         transform.Translate(Vector2.down * hiz * Time.deltaTime);
 
+        // Eğer ekranın altına düşerse:
+        // Oyuncu alamadı demektir → sahneden sil
         if (transform.position.y < -7f)
         {
             Destroy(gameObject);

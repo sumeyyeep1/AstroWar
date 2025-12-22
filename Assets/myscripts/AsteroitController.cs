@@ -1,47 +1,68 @@
-using UnityEngine;
+﻿using UnityEngine;
 
+// Bu script asteroitlerin:
+// - Aşağı doğru hareketini
+// - Mermiyle vurulunca yok olmasını
+// - Oyuncuya çarparsa kaybolmasını
+// - Patlama sesini
+// kontrol eder
 public class AsteroitController : MonoBehaviour
 {
+    // -------------------- HAREKET --------------------
+    // Asteroitin aşağı doğru düşme hızı
     public float speed = 3f;
 
-    // --- YEN�: Patlama Sesi ---
+    // -------------------- SES --------------------
+    // Asteroit yok olurken çalacak patlama sesi
     public AudioClip patlamaSesi;
 
     void Update()
     {
+        // Asteroiti sürekli aşağı doğru hareket ettir
+        // Time.deltaTime → FPS'e bağlı olmasın diye
         transform.Translate(Vector3.down * speed * Time.deltaTime);
 
+        // Eğer ekranın altına düşerse
+        // Oyuncu kaçırdı demektir → yok et
         if (transform.position.y < -8f)
         {
             Destroy(gameObject);
         }
     }
 
+    // -------------------- ÇARPIŞMA KONTROLÜ --------------------
     void OnTriggerEnter2D(Collider2D other)
     {
-        // 1. MERM� �ARPARSA (Puan kazan ve yok et)
+        // -------- OYUNCU MERMİSİ ÇARPARSA --------
         if (other.gameObject.CompareTag("mermi"))
         {
+            // GameManager üzerinden puan kazandır
             GameManager yonetici = FindObjectOfType<GameManager>();
-            if (yonetici != null) yonetici.PuanKazan(10);
+            if (yonetici != null)
+                yonetici.PuanKazan(10);
 
-            // --- YEN�: Patlama Sesini �al ---
+            // Patlama sesi çal
+            // Obje yok olsa bile ses devam etsin diye
             if (patlamaSesi != null)
             {
-                // Obje yok olsa bile sesi o noktada �alar
-                AudioSource.PlayClipAtPoint(patlamaSesi, transform.position);
+                AudioSource.PlayClipAtPoint(
+                    patlamaSesi,
+                    transform.position
+                );
             }
-            // --------------------------------
 
-            Destroy(other.gameObject); // Mermiyi sil
-            Destroy(gameObject);       // Ta�� sil
+            // Önce mermiyi sil
+            Destroy(other.gameObject);
+
+            // Sonra asteroiti sil
+            Destroy(gameObject);
         }
 
-        // 2. GEM� �ARPARSA (Sadece yok ol, sesi gemi ��kar�yor zaten)
+        // -------- OYUNCUYA ÇARPARSA --------
         else if (other.gameObject.CompareTag("Player"))
         {
-            // Buraya da istersen patlama sesi ekleyebilirsin ama
-            // Gemi zaten "�arp��ma Sesi" ��karaca�� i�in g�r�lt� olmas�n.
+            // Burada ekstra ses çalmıyoruz
+            // Çünkü oyuncu gemisi zaten çarpışma sesi çıkarıyor
             Destroy(gameObject);
         }
     }

@@ -1,51 +1,71 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
+// Bu script dÃ¼ÅŸmanlarÄ±n attÄ±ÄŸÄ± mermilerin
+// - HÄ±zÄ±nÄ±
+// - Hareket yÃ¶nÃ¼nÃ¼
+// - Level'a gÃ¶re zorluk ayarÄ±nÄ±
+// - Oyuncuya Ã§arpÄ±nca can azaltmasÄ±nÄ±
+// kontrol eder
 public class DusmanMermisi : MonoBehaviour
 {
-    public float hiz = 10f; // Varsayılan hız
+    // -------------------- MERMÄ° HIZI --------------------
+    // VarsayÄ±lan mermi hÄ±zÄ±
+    public float hiz = 10f;
+
+    // GameManager referansÄ±
+    // Level bilgisi ve CanAzalt fonksiyonu iÃ§in gerekli
     private GameManager yonetici;
 
     void Start()
     {
-        // GameManager'ı bul (Level bilgisini ve Can Azaltma komutunu buradan alacağız)
+        // Sahnedeki GameManager'Ä± bul
         yonetici = FindObjectOfType<GameManager>();
 
-        // --- LEVEL HIZ AYARI ---
+        // -------------------- LEVEL'A GÃ–RE HIZ AYARI --------------------
+        // AmaÃ§: Oyun ilerledikÃ§e mermilerin davranÄ±ÅŸÄ± deÄŸiÅŸsin
         if (yonetici != null)
         {
-            // Level 3 ise: Mermiler YAVAŞ ve Tembel (Kolay)
+            // EÄŸer Level 3 ise:
+            // Oyuncu daha yeni dÃ¼ÅŸman mermilerine alÄ±ÅŸÄ±yor
+            // O yÃ¼zden mermiler daha YAVAÅ
             if (yonetici.suankiLevel == 3)
             {
-                hiz = 5f; // Hızı yarıya düşürdük (Senin 10f ayarına göre)
+                hiz = 5f; // Normal hÄ±zÄ±n yaklaÅŸÄ±k yarÄ±sÄ±
             }
-            // Level 3'ten büyükse: Mermiler HIZLI (Zor)
+            // EÄŸer Level 3'ten bÃ¼yÃ¼kse:
+            // Oyun zorlaÅŸtÄ± â†’ mermiler daha HIZLI
             else if (yonetici.suankiLevel > 3)
             {
-                hiz = 12f; // Hızı arttırdık
+                hiz = 12f; // Normalden daha hÄ±zlÄ±
             }
         }
 
-        // 3 saniye sonra sahneden silinsin (Performans için)
+        // Performans iÃ§in:
+        // Mermi 3 saniye sonra otomatik yok edilir
+        // BÃ¶ylece sahnede gereksiz obje birikmez
         Destroy(gameObject, 3f);
     }
 
     void Update()
     {
-        // DİKKAT: Resim zaten aşağı baktığı için "Down" kullanıyoruz.
-        // Hız değişkeni yukarıda Level'a göre ayarlandığı için doğru hızda gidecektir.
+        // Mermiyi aÅŸaÄŸÄ± doÄŸru hareket ettiriyoruz
+        // NOT: Sprite zaten aÅŸaÄŸÄ± baktÄ±ÄŸÄ± iÃ§in Vector2.down kullanÄ±yoruz
+        // Time.deltaTime sayesinde FPS'ten baÄŸÄ±msÄ±z hareket eder
         transform.Translate(Vector2.down * hiz * Time.deltaTime);
     }
 
-    // --- ÇARPIŞMA KONTROLÜ (YENİ EKLENEN KISIM) ---
+    // -------------------- Ã‡ARPIÅMA KONTROLÃœ --------------------
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Eğer çarptığımız şey "Player" (Bizim gemimiz) ise:
+        // EÄŸer Ã§arptÄ±ÄŸÄ±mÄ±z obje Player (oyuncu gemisi) ise
         if (other.gameObject.CompareTag("Player"))
         {
-            // 1. Yöneticiye söyle: Can azalt
-            if (yonetici != null) yonetici.CanAzalt();
+            // GameManager'a haber ver:
+            // Oyuncunun canÄ±nÄ± azalt
+            if (yonetici != null)
+                yonetici.CanAzalt();
 
-            // 2. Mermiyi yok et (Çarptı çünkü)
+            // Mermi gÃ¶revini yaptÄ± â†’ yok et
             Destroy(gameObject);
         }
     }

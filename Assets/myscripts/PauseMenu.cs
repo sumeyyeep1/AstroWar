@@ -1,20 +1,30 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Menüye dönmek istersen gerekli
+using UnityEngine.SceneManagement; // Sahne deðiþtirmek (menüye dönmek) için gerekli
 
+// Bu script oyunu durdurma (pause), devam ettirme (resume)
+// menüye dönme ve oyundan çýkma iþlemlerini kontrol eder
 public class PauseMenu : MonoBehaviour
 {
-    public static bool GameIsPaused = false; // Oyunun durup durmadýðýný kontrol eden deðiþken
-    public GameObject pauseMenuUI; // Inspector'dan atayacaðýmýz Panel
+    // Oyun þu anda duraklatýldý mý?
+    // static olduðu için her yerden eriþilebilir
+    public static bool GameIsPaused = false;
+
+    // Pause menü paneli (Canvas içindeki panel)
+    // Inspector'dan atanýr
+    public GameObject pauseMenuUI;
 
     void Update()
     {
-        // "ESC" tuþuna basýnca da çalýþmasý için (Opsiyonel)
+        // ESC tuþuna basýldýðýnda pause aç/kapa yapýlýr
+        // (Buton dýþýnda klavye desteði olsun diye)
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            // Eðer oyun zaten duruyorsa devam ettir
             if (GameIsPaused)
             {
                 Resume();
             }
+            // Eðer oyun çalýþýyorsa durdur
             else
             {
                 Pause();
@@ -22,33 +32,53 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
-    // Oyunu Devam Ettir
+    // -------------------- OYUNA DEVAM --------------------
     public void Resume()
     {
-        pauseMenuUI.SetActive(false); // Paneli gizle
-        Time.timeScale = 1f; // Zamaný normal hýzýna getir
+        // Pause menü panelini gizle
+        pauseMenuUI.SetActive(false);
+
+        // Zamaný normale döndür
+        // (hareket, fizik, Update tekrar çalýþýr)
+        Time.timeScale = 1f;
+
+        // Oyun artýk durmuyor
         GameIsPaused = false;
     }
 
-    // Oyunu Durdur
+    // -------------------- OYUNU DURDUR --------------------
     public void Pause()
     {
-        pauseMenuUI.SetActive(true); // Paneli göster
-        Time.timeScale = 0f; // Zamaný dondur (Fizik ve hareket durur)
+        // Pause menü panelini göster
+        pauseMenuUI.SetActive(true);
+
+        // Zamaný tamamen durdur
+        // (Time.deltaTime = 0 olur)
+        Time.timeScale = 0f;
+
+        // Oyun duraklatýldý
         GameIsPaused = true;
     }
 
-    // Ana Menüye Dön (Opsiyonel)
+    // -------------------- ANA MENÜYE DÖN --------------------
     public void LoadMenu()
     {
-        Time.timeScale = 1f; // Menüye dönerken zamaný tekrar açmayý unutma!
-        SceneManager.LoadScene("MainMenu"); // "Menu" senin sahne adýn olmalý
+        // Menüye geçerken zamaný mutlaka aç
+        // Yoksa menü de donmuþ olur
+        Time.timeScale = 1f;
+
+        // Ana menü sahnesini yükle
+        // Sahne adý Build Settings ile birebir ayný olmalý
+        SceneManager.LoadScene("MainMenu");
     }
 
-    // Oyundan Çýk
+    // -------------------- OYUNDAN ÇIKIÞ --------------------
     public void QuitGame()
     {
+        // Editörde test ederken görmek için
         Debug.Log("Oyundan çýkýlýyor...");
+
+        // Build alýnmýþ oyunda uygulamayý kapatýr
         Application.Quit();
     }
 }
