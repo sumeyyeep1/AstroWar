@@ -22,6 +22,11 @@ Oyunun temel amacı; sonsuz bir döngüde ilerlerken düşmanları yok etmek, ca
 * **Akıllı Düşmanlar:** Düşman gemileri sadece aşağı inmez, oyuncuya ateş ederek karşılık verir.
 * **Can ve Güçlendirme:** Rastgele düşen "Can İksirleri" ile oyuncu hasar aldığında iyileşebilir.
 * **Pixel Art Tasarım:** 8-bit nostaljik grafikler ve uzay atmosferi.
+## 📸 Oynanış Görüntüleri (Screenshots)
+<img width="989" height="703" alt="Ekran Görüntüsü (88)" src="https://github.com/user-attachments/assets/c6d27e5a-fead-4219-b21c-a30e2a8fc71d" />
+<img width="967" height="628" alt="Ekran Görüntüsü (89)" src="https://github.com/user-attachments/assets/306a2421-39e5-49fa-9bd5-a3edf65ce430" />
+<img width="962" height="583" alt="Ekran Görüntüsü (90)" src="https://github.com/user-attachments/assets/2aab3b4d-d8bb-4934-8162-653081ef138e" />
+<img width="960" height="613" alt="Ekran Görüntüsü (87)" src="https://github.com/user-attachments/assets/b389d72c-a155-4b85-a124-06c6327f7d62" />
 
 ## 🕹️ Kontroller
 
@@ -53,7 +58,7 @@ Projeyi Unity editöründe açmak için:
 
 1.  Bu depoyu klonlayın:
     ```bash
-    git clone [https://github.com/kullaniciadiniz/astro-war.git](https://github.com/kullaniciadiniz/astro-war.git)
+    git clone [https://github.com/sumeyyeep1/AstroWar.git](https://github.com/sumeyyeep1/AstroWar.git)
     ```
 2.  **Unity Hub**'ı açın ve `Add Project` diyerek klasörü seçin.
 3.  Unity (Sürüm 6 veya üstü önerilir) ile projeyi başlatın.
